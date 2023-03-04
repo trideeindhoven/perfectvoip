@@ -1,0 +1,61 @@
+- name: PerfectVoIP FusionPBX server
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+#  - ansible.builtin.debug:
+#     msg: "!!!!!!!!!!!Playbook can only run under Debian 11!!!!!!!!!!"
+#     when:
+#     -  ansible_distribution != 'Debian'
+  - meta: end_play
+    when:
+    -  ansible_distribution != 'Debian'
+  - name: Ansible Update Cache and Upgrade all Packages
+    register: updatesys
+    become: true
+    apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+  - name: apt install packages
+    become: true
+    apt:
+      name: 
+        - wget
+        - sngrep
+        - htop
+      state: present
+  - name: Download pre-install.sh
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/debian/pre-install.sh
+      dest: /tmp/pre-install.sh
+      mode: '0755'
+
+  - name: Pre installation tasks FusionPBX
+    shell: /tmp/pre-install.sh
+    become: true
+
+  - name: Install FusionPBX
+    shell: /usr/src/fusionpbx-install.sh/debian/install.sh
+    become: true
+
+
+
+
+#/etc/freeswitch/autoload_configs/lua.conf.xml uncomment:
+#    <param name="startup-script" value="blf_subscribe.lua flow"/>
+#    <param name="startup-script" value="app/voicemail/resources/scripts/mwi_subscribe.lua"/>
+
+#wget -O - https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/debian/pre-install.sh | sh;
+#cd /usr/src/fusionpbx-install.sh/debian && ./install.sh
+
+#   - name: apt install packages
+#     apt:
+#       name: nginx
+#         state: present
+   #- name: Print message
+   #  ansible.builtin.debug:
+   #    msg: Hello world
+   #- debug:
+   #    msg: "{{ansible_distribution}}"
+#when: ansible_distribution == 'Debian'
+
