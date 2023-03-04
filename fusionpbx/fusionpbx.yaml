@@ -6,6 +6,7 @@
 #     msg: "!!!!!!!!!!!Playbook can only run under Debian 11!!!!!!!!!!"
 #     when:
 #     -  ansible_distribution != 'Debian'
+  - include_vars: vars.yaml
   - meta: end_play
     when:
     -  ansible_distribution != 'Debian'
@@ -34,28 +35,118 @@
     shell: /tmp/pre-install.sh
     become: true
 
+  - name: Test if FusionPBX config exists
+    stat:
+      path: /etc/fusionpbx/config.conf
+    register: fusionpbx_config
+
   - name: Install FusionPBX
     shell: /usr/src/fusionpbx-install.sh/debian/install.sh
     become: true
+    when: not fusionpbx_config.stat.exists
+
+  - name: Ensure blf_subscribe.lua is enabled at startup
+    become: true
+    replace:
+      path: /etc/freeswitch/autoload_configs/lua.conf.xml
+      regexp: '^(\s*)<!\-\-(<param name="startup\-script" value="blf_subscribe.lua flow"/>)'
+      replace: '\1\2'
+
+  - name: Ensure mwi_subscribe.lua is enabled at startup
+    become: true
+    replace:
+      path: /etc/freeswitch/autoload_configs/lua.conf.xml
+      regexp: '^(\s*)<!\-\-(<param name="startup\-script" value="app/voicemail/resources/scripts/mwi_subscribe.lua"/>)'
+      replace: '\1\2'
+
+  - name: Download custom scripts
+    become: true
+    get_url:
+      url: "https://raw.githubusercontent.com/trideeindhoven/perfectvoip/master/fusionpbx/scripts/{{ item }}"
+      dest: /usr/share/freeswitch/scripts
+    with_items:
+      - jeroen.lua
+      - schedule_call_flow2.lua
+      - slaxdom.lua
+      - slaxml.lua
+
+  - name: "Timeconditions callflow cron"
+    become: true
+    ansible.builtin.cron:
+      name: "test"
+      state: present
+      minute: "0"
+      hour: "1"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      job: "/usr/bin/fs_cli -x 'lua schedule_call_flow2.lua'"
 
 
+  - name: Install mod_translate
+    become: true
+    make:
+      chdir: /usr/src/freeswitch/src/mod/applications/mod_translate
+      target: install
 
+#Vervolgens toevoegen in: /etc/freeswitch/autoload_configs/modules.conf.xml
+#Herstarten: systemctl restart freeswitch
+#Vervolgens activeren in de gui: advanced-modules
 
-#/etc/freeswitch/autoload_configs/lua.conf.xml uncomment:
-#    <param name="startup-script" value="blf_subscribe.lua flow"/>
-#    <param name="startup-script" value="app/voicemail/resources/scripts/mwi_subscribe.lua"/>
+  - name: Install mod_say_nl
+    become: true
+    make:
+      chdir: /usr/src/freeswitch/src/mod/say/mod_say_nl
+      target: install
 
-#wget -O - https://raw.githubusercontent.com/fusionpbx/fusionpbx-install.sh/master/debian/pre-install.sh | sh;
-#cd /usr/src/fusionpbx-install.sh/debian && ./install.sh
+  - name: Modules are enabled in modules.conf.xml
+    become: true
+    ansible.builtin.lineinfile:
+      path: /etc/freeswitch/autoload_configs/modules.conf.xml
+      regexp: '<load module="{{ item }}"/>'
+      line: '                <load module="{{ item }}"/>'
+    with_items:
+      - mod_translate
+      - mod_say_nl
 
-#   - name: apt install packages
-#     apt:
-#       name: nginx
-#         state: present
-   #- name: Print message
-   #  ansible.builtin.debug:
-   #    msg: Hello world
-   #- debug:
-   #    msg: "{{ansible_distribution}}"
-#when: ansible_distribution == 'Debian'
+#Vervolgens toevoegen in: /etc/freeswitch/freeswitch.xml 
+#    <X-PRE-PROCESS cmd="include" data="languages/nl/*.xml"/>
+  - name: Enable Dutch language
+    become: true
+    ansible.builtin.lineinfile:
+      path: /etc/freeswitch/freeswitch.xml
+      regexp: '<X\-PRE\-PROCESS cmd="include" data="languages/nl/*.xml"/>'
+      line: '    <X-PRE-PROCESS cmd="include" data="languages/nl/*.xml"/>'
+      insertafter: '<section name="languages" description="Language Management">'
+#Herstarten: systemctl restart freeswitch
+#Vervolgens controleren in de gui: Advanced→Modules of de module inderdaad actief is
+
+  - name: Gitclonerepo
+    git:
+      repo: "https://github.com/trideeindhoven/freeswitch_nl.git"
+      dest: ~/freeswitch_nl/
+      clone: yes
+      update: yes
+
+  - name: Copy config.py.example to config.py
+    ansible.builtin.copy:
+      src: ~/freeswitch_nl/config.py.example
+      dest: ~/freeswitch_nl/config.py
+
+  - name: Set the google API key
+    replace:
+      path: ~/freeswitch_nl/config.py
+      regexp: 'yzabc123'
+      replace: '{{google_api_key}}'
+
+  - name: Generate the audiofiles
+    shell: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
+
+#cd freeswitch_nl/
+#cp config.py.example config.py
+#nano config.py
+#./freeswitch_nl_translations.py 
+#mv google/nl /usr/share/freeswitch/sounds
+#default_country=NL
+
 
