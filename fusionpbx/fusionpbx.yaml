@@ -41,6 +41,16 @@
       path: /etc/fusionpbx/config.conf
     register: fusionpbx_config
 
+  - name: Enable some modules
+    become: true
+    ansible.builtin.blockinfile:
+      path: /usr/src/fusionpbx-install.sh/debian/resources/switch/source-release.sh
+      block: "sed -i /usr/src/freeswitch/modules.conf -e s:'#say/mod_say_nl:say/mod_say_nl:'\nsed -i /usr/src/freeswitch/modules.conf -e s:'#applications/mod_translate:applications/mod_translate:'"
+      insertbefore: '# prepare the build'
+      marker: "#### {mark} ANSIBLE MANAGED BLOCK ####"
+      marker_begin: "START PerfectVoIP MODULES"
+      marker_end: "END PerfectVoIP MODULES"
+
   - name: Install FusionPBX
     shell: /usr/src/fusionpbx-install.sh/debian/install.sh
     become: true
@@ -144,11 +154,11 @@
     shell: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
 
   #TODO: COPY TO /nl/nl/googlefemalewavenete
-  #- name: Audiofiles to FreeSwitch location
-  #  become: true
-  #  ansible.builtin.copy:
-  #    src: ~/freeswitch_nl/google/nl
-  #    dest: /usr/share/freeswitch/sounds
+  - name: Audiofiles to FreeSwitch location
+    become: true
+    ansible.builtin.copy:
+      src: ~/freeswitch_nl/google/nl
+      dest: /usr/share/freeswitch/sounds
 
   - name: FusionPPX config
     shell:
