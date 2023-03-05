@@ -10,6 +10,7 @@
   - meta: end_play
     when:
     -  ansible_distribution != 'Debian'
+
   - name: Ansible Update Cache and Upgrade all Packages
     register: updatesys
     become: true
@@ -121,7 +122,7 @@
 #Herstarten: systemctl restart freeswitch
 #Vervolgens controleren in de gui: Advanced→Modules of de module inderdaad actief is
 
-  - name: Gitclonerepo
+  - name: Clone freeswitch_nl repo
     git:
       repo: "https://github.com/trideeindhoven/freeswitch_nl.git"
       dest: ~/freeswitch_nl/
@@ -142,11 +143,74 @@
   - name: Generate the audiofiles
     shell: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
 
+  #TODO: COPY TO /nl/nl/googlefemalewavenete
+  #- name: Audiofiles to FreeSwitch location
+  #  become: true
+  #  ansible.builtin.copy:
+  #    src: ~/freeswitch_nl/google/nl
+  #    dest: /usr/share/freeswitch/sounds
+
+  - name: FusionPPX config
+    shell:
+      cmd: cat /etc/fusionpbx/config.conf
+    register: fusionpbx_config_content
+
+  - name: Getting Fusionpbx database name
+    set_fact: 
+      db_name:     "{{ fusionpbx_config_content.stdout | regex_search('database.0.name\\s?=\\s?(.+)', '\\1') | first}}"
+  - name: Getting Fusionpbx database host
+    set_fact: 
+      db_host:     "{{ fusionpbx_config_content.stdout | regex_search('database.0.host\\s?=\\s?(.+)', '\\1') | first}}"
+  - name: Getting Fusionpbx database user
+    set_fact: 
+      db_user:     "{{ fusionpbx_config_content.stdout | regex_search('database.0.username\\s?=\\s?(.+)', '\\1') | first}}"
+  - name: Getting Fusionpbx database password
+    set_fact: 
+      db_password: "{{ fusionpbx_config_content.stdout | regex_search('database.0.password\\s?=\\s?(.+)', '\\1') | first}}"
+
+  - name: "Update tables with correct data"
+    become: true
+    shell: psql postgresql://{{db_user}}:{{db_password}}@{{db_host}}/{{db_name}} < ./sql/updates.sql
+
+  - name: "Insert data into tables"
+    become: true
+    shell: psql postgresql://{{db_user}}:{{db_password}}@{{db_host}}/{{db_name}} < ./sql/inserts.sql
+
+  - name: Enable TLS version logging
+    become: true
+    ansible.builtin.blockinfile:
+      path: /etc/nginx/sites-enabled/fusionpbx
+      block: "log_format combined_ssl '$remote_addr - $remote_user [$time_local] '\n                        '\"$request\" $status $body_bytes_sent '\n                        '\"$http_referer\" \"$http_user_agent\" '\n                        '$ssl_protocol/$ssl_cipher';"
+      insertbefore: 'server {'
+      marker: "#### {mark} ANSIBLE MANAGED BLOCK ####"
+      marker_begin: "START TLS LOGGING"
+      marker_end: "END TLS LOGGING"
+
+  - name: Enable TLS logging for NGINX so that we can see if some TLS protocols can be disabled
+    become: true
+    replace:
+      path: /etc/nginx/sites-enabled/fusionpbx
+      after: 'listen 443 ssl;'
+      regexp: '^(\s*access_log /var/log/nginx/access\.log);'
+      replace: '\1 combined_ssl;'
+
+  - name: restart services
+    become: true
+    ansible.builtin.service:
+      name: '{{ item }}'
+      state: restarted
+      enabled: true
+    with_items:
+      - freeswitch
+      - nginx
+
+
 #cd freeswitch_nl/
 #cp config.py.example config.py
 #nano config.py
 #./freeswitch_nl_translations.py 
 #mv google/nl /usr/share/freeswitch/sounds
+
 #default_country=NL
 
 
