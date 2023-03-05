@@ -1,13 +1,13 @@
 UPDATE v_vars SET var_value='NL',          var_enabled='true' WHERE var_name='default_country'      and var_category='Defaults';
 UPDATE v_vars SET var_value='nl',          var_enabled='true' WHERE var_name='default_language'     and var_category='Defaults';
 UPDATE v_vars SET var_value='nl',          var_enabled='true' WHERE var_name='default_dialect'      and var_category='Defaults';
-UPDATE v_vars SET var_value='googlefemalewavenete', var_enabled='true' WHERE var_name='default_voice' and var_category='Defaults';
+UPDATE v_vars SET var_value='nl-NL-Wavenet-E', var_enabled='true' WHERE var_name='default_voice' and var_category='Defaults';
 UPDATE v_vars SET var_value='$${nl-ring}', var_enabled='true' WHERE var_name='ringback'             and var_category='Defaults'
 UPDATE v_vars SET var_value='$${nl-ring}', var_enabled='true' WHERE var_name='transfer_ringback'    and var_category='Defaults'
 UPDATE v_vars SET var_value='31',          var_enabled='true' WHERE var_name='default_countrycode'  and var_category='Defaults'
 UPDATE v_vars SET var_value='PCMA,PCMU',   var_enabled='true' WHERE var_name='outbound_codec_prefs' and var_category='Codecs'
 UPDATE v_vars SET var_value='PCMA,PCMU,G7221@32000h,G7221@16000h,G722', var_enabled='true' WHERE var_name='global_codec_prefs' and var_category='Codecs'
-UPDATE v_vars SET var_value='$${sounds_dir}/nl/nl/googlefemalewavenete', var_enabled='true' WHERE var_name='sound_prefix'      and var_category='Sound'
+UPDATE v_vars SET var_value='$${sounds_dir}/nl/nl/nl-NL-Wavenet-E', var_enabled='true' WHERE var_name='sound_prefix'      and var_category='Sound'
 
 UPDATE v_default_settings SET default_setting_value_value='Europe/Amsterdam',     default_setting_enabled='true' WHERE default_setting_subcategory='time_zone' and default_setting_category='domain';
 UPDATE v_default_settings SET default_setting_value_value='fax_enable_t38=false', default_setting_enabled='true' WHERE default_setting_subcategory='fax' and default_setting_description='Enable T.38';

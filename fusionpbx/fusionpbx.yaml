@@ -94,34 +94,32 @@
       job: "/usr/bin/fs_cli -x 'lua schedule_call_flow2.lua'"
 
 
-  - name: Install mod_translate
-    become: true
-    make:
-      chdir: /usr/src/freeswitch/src/mod/applications/mod_translate
-      target: install
+#  - name: Install mod_translate
+#    become: true
+#    make:
+#      chdir: /usr/src/freeswitch/src/mod/applications/mod_translate
+#      target: install
 
 #Vervolgens toevoegen in: /etc/freeswitch/autoload_configs/modules.conf.xml
 #Herstarten: systemctl restart freeswitch
 #Vervolgens activeren in de gui: advanced-modules
 
-  - name: Install mod_say_nl
-    become: true
-    make:
-      chdir: /usr/src/freeswitch/src/mod/say/mod_say_nl
-      target: install
+#  - name: Install mod_say_nl
+#    become: true
+#    make:
+#      chdir: /usr/src/freeswitch/src/mod/say/mod_say_nl
+#      target: install
 
-  - name: Modules are enabled in modules.conf.xml
-    become: true
-    ansible.builtin.lineinfile:
-      path: /etc/freeswitch/autoload_configs/modules.conf.xml
-      regexp: '<load module="{{ item }}"/>'
-      line: '                <load module="{{ item }}"/>'
-    with_items:
-      - mod_translate
-      - mod_say_nl
+#  - name: Modules are enabled in modules.conf.xml
+#    become: true
+#    ansible.builtin.lineinfile:
+#      path: /etc/freeswitch/autoload_configs/modules.conf.xml
+#      regexp: '<load module="{{ item }}"/>'
+#      line: '                <load module="{{ item }}"/>'
+#    with_items:
+#      - mod_translate
+#      - mod_say_nl
 
-#Vervolgens toevoegen in: /etc/freeswitch/freeswitch.xml 
-#    <X-PRE-PROCESS cmd="include" data="languages/nl/*.xml"/>
   - name: Enable Dutch language
     become: true
     ansible.builtin.lineinfile:
@@ -153,7 +151,6 @@
   - name: Generate the audiofiles
     shell: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
 
-  #TODO: COPY TO /nl/nl/googlefemalewavenete
   - name: Audiofiles to FreeSwitch location
     become: true
     ansible.builtin.copy:
@@ -213,6 +210,9 @@
     with_items:
       - freeswitch
       - nginx
+
+
+#TODO: geen poort 5060 niet openen
 
 
 #cd freeswitch_nl/
