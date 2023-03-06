@@ -55,6 +55,10 @@
     shell: /usr/src/fusionpbx-install.sh/debian/install.sh
     become: true
     when: not fusionpbx_config.stat.exists
+    register: fusionpbx_install_content
+
+  - ansible.builtin.debug:
+     msg: {{fusionpbx_install_content.stdout_lines}}
 
   - name: Ensure blf_subscribe.lua is enabled at startup
     become: true
