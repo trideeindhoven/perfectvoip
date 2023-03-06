@@ -58,7 +58,25 @@
     register: fusionpbx_install_content
 
   - ansible.builtin.debug:
-     msg: {{fusionpbx_install_content.stdout_lines}}
+     var: fusionpbx_install_content.stdout_lines
+
+  - set_fact:
+      web_password: "{{ fusionpbx_install_content.stdout | regex_search(regexp,'\\1') | first }}"
+    vars:
+      regexp: '\s+password: ([a-zA-Z0-9]+)'
+
+  - ansible.builtin.debug:
+     var: web_password
+
+  - name: Write web password to file
+    become: true
+    ansible.builtin.lineinfile:
+      path: /root/fusionpbx_password.txt
+      create: true
+      owner: root
+      mode: 600
+#      regexp: '<load module="{{ item }}"/>'
+      line: '{{ web_password }}'
 
   - name: Ensure blf_subscribe.lua is enabled at startup
     become: true
@@ -205,6 +223,13 @@
       regexp: '^(\s*access_log /var/log/nginx/access\.log);'
       replace: '\1 combined_ssl;'
 
+  - name: Change open ports in firewall
+    become: true
+    replace:
+      path: /etc/iptables/rules.v4
+      regexp: '5060:5091'
+      replace: '5080:5091'
+
   - name: restart services
     become: true
     ansible.builtin.service:
@@ -214,10 +239,7 @@
     with_items:
       - freeswitch
       - nginx
-
-
-#TODO: geen poort 5060 niet openen
-
+      - iptables
 
 #cd freeswitch_nl/
 #cp config.py.example config.py
