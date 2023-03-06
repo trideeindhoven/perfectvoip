@@ -11,6 +11,12 @@
     when:
     -  ansible_distribution != 'Debian'
 
+  - name: Export MAKEFLAGS
+    shell: export MAKEFLAGS='-j '$((`nproc`+1))
+    become: true
+  - name: Export MAKEFLAGS
+    shell: export MAKEFLAGS='-j '$((`nproc`+1))
+
   - name: Ansible Update Cache and Upgrade all Packages
     register: updatesys
     become: true
