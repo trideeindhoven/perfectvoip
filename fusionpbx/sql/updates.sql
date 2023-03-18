@@ -29,6 +29,11 @@ UPDATE v_default_settings SET default_setting_value_value='1',  default_setting_
 UPDATE v_default_settings SET default_setting_value_value='admin', default_setting_enabled='true' WHERE default_setting_subcategory='admin_name' and default_setting_category='provisioning';
 UPDATE v_default_settings SET default_setting_value_value=array_to_string(array(select substr('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',((random()*(62-1)+1)::integer),1) from generate_series(1,20)),''), default_setting_enabled='true' WHERE default_setting_subcategory='admin_password' and default_setting_category='provisioning';
 
+UPDATE v_default_settings SET default_setting_value_value='nl.pool.ntp.org', default_setting_enabled='true' WHERE default_setting_subcategory='ntp_server_seconday' and default_setting_category='provision';
+UPDATE v_default_settings SET default_setting_value_value='Nederlands', default_setting_enabled='true' WHERE default_setting_subcategory='snom_language' and default_setting_category='provision';
+UPDATE v_default_settings SET default_setting_value_value='NLD+1', default_setting_enabled='true' WHERE default_setting_subcategory='snom_time_zone' and default_setting_category='provision';
+UPDATE v_default_settings SET default_setting_value_value='NLD', default_setting_enabled='true' WHERE default_setting_subcategory='snom_tone_scheme' and default_setting_category='provision';
+
 ;sip profiles
 UPDATE v_sip_profile_settings sps SET sip_profile_setting_value ='5060', sip_profile_setting_enabled='true' FROM v_sip_profiles sp WHERE sp.sip_profile_uuid = sps.sip_profile_uuid and sps.sip_profile_setting_name='sip-port' and sp.sip_profile_name='external';
 UPDATE v_sip_profile_settings sps SET sip_profile_setting_value ='5061', sip_profile_setting_enabled='true' FROM v_sip_profiles sp WHERE sp.sip_profile_uuid = sps.sip_profile_uuid and sps.sip_profile_setting_name='tls-sip-port' and sp.sip_profile_name='external';
@@ -36,16 +41,4 @@ UPDATE v_sip_profile_settings sps SET sip_profile_setting_value ='5080', sip_pro
 UPDATE v_sip_profile_settings sps SET sip_profile_setting_value ='5081', sip_profile_setting_enabled='true' FROM v_sip_profiles sp WHERE sp.sip_profile_uuid = sps.sip_profile_uuid and sps.sip_profile_setting_name='tls-sip-port' and sp.sip_profile_name='internal';
 UPDATE v_vars SET var_value='true', var_enabled='true' WHERE var_name='external_ssl_enable';
 UPDATE v_vars SET var_value='true', var_enabled='true' WHERE var_name='internal_ssl_enable';
-
-
-
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
-UPDATE v_default_settings SET default_setting_value_value='', default_setting_enabled='true' WHERE default_setting_subcategory='' and default_setting_category='';
 
