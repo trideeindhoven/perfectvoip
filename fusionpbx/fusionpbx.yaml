@@ -173,7 +173,7 @@
   - name: Set the google API key
     replace:
       path: ~/freeswitch_nl/config.py
-      regexp: 'yzabc123'
+      regexp: 'xyzabc123'
       replace: '{{google_api_key}}'
 
   - name: Generate the audiofiles
