@@ -177,8 +177,9 @@
       replace: '{{google_api_key}}'
 
   - name: Generate the audiofiles
-    chdir: '~/freeswitch_nl'
-    shell: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
+    shell: 
+      cmd: '~/freeswitch_nl/freeswitch_nl_translations.py -n'
+      chdir: '~/freeswitch_nl'
 
   - name: Audiofiles to FreeSwitch location
     become: true
